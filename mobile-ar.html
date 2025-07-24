@@ -189,15 +189,7 @@
 </head>
 <body>
     <!-- 顶部古风装饰图案 -->
-    <div style="position: absolute; left: 0; top: 0; z-index: 1;">
-        <img src="https://cdn.jsdelivr.net/gh/guiguiwang956-lang/herb-ar@main/image/leaf1.png" alt="左上叶子" style="width: 80px; opacity: 0.7;">
-    </div>
-    <div style="position: absolute; right: 0; top: 0; z-index: 1;">
-        <img src="https://cdn.jsdelivr.net/gh/guiguiwang956-lang/herb-ar@main/image/leaf3.png" alt="右上叶子" style="width: 90px; opacity: 0.7;">
-    </div>
-    <div style="position: absolute; left: 0; bottom: 0; z-index: 1;">
-        <img src="https://cdn.jsdelivr.net/gh/guiguiwang956-lang/herb-ar@main/image/leaf2.png" alt="左下叶子" style="width: 70px; opacity: 0.6;">
-    </div>
+    
     <h2 style="position: relative; z-index: 2;">中草药AR智能识别</h2>
     
     <div class="upload-area" style="position: relative; z-index: 2;">
@@ -257,7 +249,7 @@
             try {
                 // 模拟API请求延迟
                 setTimeout(async () => {
-                    const res = await fetch('http://127.0.0.1:3000/checkImage', {
+                    const res = await fetch('http://10.15.118.176:3000/checkImage', {
                         method: 'POST',
                         headers: { 
                             'Content-Type': 'application/json' 
