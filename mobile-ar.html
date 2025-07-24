@@ -5,48 +5,289 @@
     <title>中草药AR识别</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
-        body { font-family: sans-serif; text-align: center; padding: 2em; }
-        #preview { max-width: 90vw; margin: 1em auto; }
+        /* 全局样式重置与基础设置 */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Noto Serif SC", "SimSun", serif;
+        }
+
+        body {
+            background-color: #f8f5f0;
+            background-image: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M11 18c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm48 25c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm-43-7c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm63 31c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM34 90c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm56-76c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM12 86c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm28-65c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm23-11c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-6 60c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm29 22c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zM32 63c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm57-13c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-9-21c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM60 91c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM35 41c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM12 60c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2z' fill='%239C92AC' fill-opacity='0.03' fill-rule='evenodd'/%3E%3C/svg%3E");
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            padding: 2em 1em;
+            color: #3d3522;
+        }
+
+        /* 标题样式 */
+        h2 {
+            font-size: 1.8em;
+            color: #8c6e42;
+            margin: 1.5em 0;
+            font-weight: 600;
+            letter-spacing: 0.05em;
+            position: relative;
+            padding-bottom: 0.5em;
+        }
+        
+        h2::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 60px;
+            height: 1px;
+            background-color: #8c6e4233;
+        }
+
+        /* 文件上传区域 */
+        .upload-area {
+            width: 90%;
+            max-width: 500px;
+            background: #ffffff;
+            border-radius: 8px;
+            padding: 2.5em 2em;
+            box-shadow: 0 3px 15px rgba(140, 110, 66, 0.08);
+            text-align: center;
+            margin-bottom: 2em;
+            border: 1px solid #e8e0d0;
+        }
+
+        #fileInput {
+            display: none;
+        }
+
+        .upload-label {
+            display: inline-block;
+            width: 100%;
+            padding: 1em 0;
+            background: #8c6e42;
+            color: #ffffff;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 1em;
+            letter-spacing: 0.03em;
+        }
+
+        .upload-label:hover {
+            background: #755a36;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(140, 110, 66, 0.15);
+        }
+        
+        .upload-icon {
+            margin-right: 8px;
+        }
+
+        /* 预览图片区域 */
+        #preview {
+            max-width: 100%;
+            border-radius: 6px;
+            margin: 1.5em 0;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+            display: none;
+            border: 1px solid #e8e0d0;
+        }
+
+        /* 识别按钮 */
+        #identifyBtn {
+            background: #6a7d5e;
+            color: #fff;
+            border: none;
+            padding: 0.8em 2em;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 1em;
+            transition: all 0.3s ease;
+            display: none;
+            margin: 0 auto;
+            letter-spacing: 0.03em;
+        }
+
+        #identifyBtn:hover {
+            background: #5a6d4e;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(106, 125, 94, 0.15);
+        }
+
+        /* 结果展示区域 */
+        #result {
+            width: 90%;
+            max-width: 500px;
+            background: #ffffff;
+            border-radius: 8px;
+            padding: 1.5em;
+            box-shadow: 0 3px 15px rgba(140, 110, 66, 0.08);
+            text-align: left;
+            line-height: 1.8;
+            color: #5c523c;
+            display: none; /* 初始隐藏 */
+            animation: fadeIn 0.5s ease forwards;
+            border: 1px solid #e8e0d0;
+        }
+        
+        #result h3 {
+            color: #8c6e42;
+            margin-bottom: 1em;
+            padding-bottom: 0.5em;
+            border-bottom: 1px solid #e8e0d0;
+        }
+        
+        #result strong {
+            color: #6a7d5e;
+        }
+
+        /* 加载动画 */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        /* 加载中动画 */
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(106, 125, 94, 0.3);
+            border-radius: 50%;
+            border-top-color: #6a7d5e;
+            animation: spin 1s ease-in-out infinite;
+            vertical-align: middle;
+            margin-right: 8px;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* 响应式适配 */
+        @media (max-width: 500px) {
+            .upload-area, #result {
+                width: 100%;
+            }
+            
+            h2 {
+                font-size: 1.5em;
+            }
+        }
     </style>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
 </head>
 <body>
-<h2>中草药AR识别</h2>
-<input type="file" accept="image/*" capture="environment" id="fileInput">
-<div>
-    <img id="preview" src="" alt="" style="display:none;">
-</div>
-<button id="identifyBtn" style="display:none;">开始识别</button>
-<div id="result"></div>
-<script>
-    const fileInput = document.getElementById('fileInput');
-    const preview = document.getElementById('preview');
-    const identifyBtn = document.getElementById('identifyBtn');
-    const resultDiv = document.getElementById('result');
-    let imageBase64 = '';
+    <!-- 顶部古风装饰图案 -->
+    <div style="position: absolute; left: 0; top: 0; z-index: 1;">
+        <img src="https://cdn.jsdelivr.net/gh/guiguiwang956-lang/herb-ar@main/image/leaf1.png" alt="左上叶子" style="width: 80px; opacity: 0.7;">
+    </div>
+    <div style="position: absolute; right: 0; top: 0; z-index: 1;">
+        <img src="https://cdn.jsdelivr.net/gh/guiguiwang956-lang/herb-ar@main/image/leaf3.png" alt="右上叶子" style="width: 90px; opacity: 0.7;">
+    </div>
+    <div style="position: absolute; left: 0; bottom: 0; z-index: 1;">
+        <img src="https://cdn.jsdelivr.net/gh/guiguiwang956-lang/herb-ar@main/image/leaf2.png" alt="左下叶子" style="width: 70px; opacity: 0.6;">
+    </div>
+    <h2 style="position: relative; z-index: 2;">中草药AR智能识别</h2>
+    
+    <div class="upload-area" style="position: relative; z-index: 2;">
+        <!-- 卷轴SVG装饰 -->
+        <svg width="100%" height="18" viewBox="0 0 400 18" fill="none" xmlns="http://www.w3.org/2000/svg" style="position:absolute;top:-18px;left:0;width:100%;z-index:0;">
+            <rect x="0" y="6" width="400" height="6" rx="3" fill="#e8e0d0"/>
+            <circle cx="9" cy="9" r="9" fill="#b8a77a"/>
+            <circle cx="391" cy="9" r="9" fill="#b8a77a"/>
+        </svg>
+        <label for="fileInput" class="upload-label">
+            <i class="fa fa-upload upload-icon"></i>点击上传中草药图片
+        </label>
+        <input type="file" accept="image/*" id="fileInput">
+        <img id="preview" src="" alt="预览图">
+    </div>
 
-    fileInput.addEventListener('change', e => {
-        if (e.target.files && e.target.files[0]) {
-            const reader = new FileReader();
-            reader.onload = e => {
-                preview.src = e.target.result;
-                preview.style.display = 'block';
-                identifyBtn.style.display = 'inline-block';
-                imageBase64 = e.target.result.split(',')[1];
-            };
-            reader.readAsDataURL(e.target.files[0]);
-        }
-    });
+    <button id="identifyBtn">
+        <i class="fa fa-search"></i> 开始智能识别
+    </button>
+    
+    <div id="result" style="position: relative; z-index: 2;">
+        <!-- 识别结果会动态插入这里 -->
+        <!-- 卷轴底部SVG装饰 -->
+        <svg width="100%" height="18" viewBox="0 0 400 18" fill="none" xmlns="http://www.w3.org/2000/svg" style="position:absolute;bottom:-18px;left:0;width:100%;z-index:0;">
+            <rect x="0" y="6" width="400" height="6" rx="3" fill="#e8e0d0"/>
+            <circle cx="9" cy="9" r="9" fill="#b8a77a"/>
+            <circle cx="391" cy="9" r="9" fill="#b8a77a"/>
+        </svg>
+    </div>
 
-    identifyBtn.addEventListener('click', async () => {
-        resultDiv.innerText = '识别中...';
-        const res = await fetch('http://你的服务器IP:3000/checkImage', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ imageBase64 })
+    <script>
+        const fileInput = document.getElementById('fileInput');
+        const preview = document.getElementById('preview');
+        const identifyBtn = document.getElementById('identifyBtn');
+        const resultDiv = document.getElementById('result');
+        let imageBase64 = '';
+
+        // 文件选择事件
+        fileInput.addEventListener('change', e => {
+            if (e.target.files && e.target.files[0]) {
+                const reader = new FileReader();
+                reader.onload = e => {
+                    preview.src = e.target.result;
+                    preview.style.display = 'block';
+                    identifyBtn.style.display = 'inline-block';
+                    imageBase64 = e.target.result.split(',')[1];
+                };
+                reader.readAsDataURL(e.target.files[0]);
+            }
         });
-        const data = await res.json();
-        resultDiv.innerText = JSON.stringify(data, null, 2);
-    });
-</script>
+
+        // 识别按钮事件
+        identifyBtn.addEventListener('click', async () => {
+            resultDiv.style.display = 'block';
+            resultDiv.innerHTML = '<div class="loading"></div>正在识别中...';
+            
+            try {
+                // 模拟API请求延迟
+                setTimeout(async () => {
+                    const res = await fetch('http://你的服务器IP:3000/checkImage', {
+                        method: 'POST',
+                        headers: { 
+                            'Content-Type': 'application/json' 
+                        },
+                        body: JSON.stringify({ imageBase64 })
+                    });
+                    
+                    const data = await res.json();
+                    
+                    // 美化结果展示：如果是百度API格式，提取关键信息
+                    if (data.result && data.result.length > 0) {
+                        const firstMatch = data.result[0];
+                        let resultHTML = `
+                            <h3>识别结果</h3>
+                            <p><strong>名称：</strong>${firstMatch.name || '未知'}</p>
+                            <p><strong>相似度：</strong>${(firstMatch.score * 100).toFixed(2)}%</p>
+                            <p><strong>药用价值：</strong><br>
+                            ${firstMatch.baike_info ? firstMatch.baike_info.description : '无详细信息'}
+                            </p>
+                        `;
+                        resultDiv.innerHTML = resultHTML;
+                    } else {
+                        resultDiv.innerHTML = '未识别到匹配的中草药，请尝试更换图片重试。';
+                    }
+                }, 800);
+                
+            } catch (error) {
+                resultDiv.innerHTML = '识别失败：' + error.message;
+            }
+        });
+    </script>
 </body>
 </html>
