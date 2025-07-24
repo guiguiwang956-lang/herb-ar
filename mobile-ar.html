@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>中草药AR识别</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body { font-family: sans-serif; text-align: center; padding: 2em; }
+        #preview { max-width: 90vw; margin: 1em auto; }
+    </style>
+</head>
+<body>
+<h2>中草药AR识别</h2>
+<input type="file" accept="image/*" capture="environment" id="fileInput">
+<div>
+    <img id="preview" src="" alt="" style="display:none;">
+</div>
+<button id="identifyBtn" style="display:none;">开始识别</button>
+<div id="result"></div>
+<script>
+    const fileInput = document.getElementById('fileInput');
+    const preview = document.getElementById('preview');
+    const identifyBtn = document.getElementById('identifyBtn');
+    const resultDiv = document.getElementById('result');
+    let imageBase64 = '';
+
+    fileInput.addEventListener('change', e => {
+        if (e.target.files && e.target.files[0]) {
+            const reader = new FileReader();
+            reader.onload = e => {
+                preview.src = e.target.result;
+                preview.style.display = 'block';
+                identifyBtn.style.display = 'inline-block';
+                imageBase64 = e.target.result.split(',')[1];
+            };
+            reader.readAsDataURL(e.target.files[0]);
+        }
+    });
+
+    identifyBtn.addEventListener('click', async () => {
+        resultDiv.innerText = '识别中...';
+        const res = await fetch('http://你的服务器IP:3000/checkImage', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ imageBase64 })
+        });
+        const data = await res.json();
+        resultDiv.innerText = JSON.stringify(data, null, 2);
+    });
+</script>
+</body>
+</html>
