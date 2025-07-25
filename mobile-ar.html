@@ -221,61 +221,58 @@
     </div>
 
     <script>
+        // 把原来的代码替换成这个
         const fileInput = document.getElementById('fileInput');
         const preview = document.getElementById('preview');
         const identifyBtn = document.getElementById('identifyBtn');
         const resultDiv = document.getElementById('result');
-        let imageBase64 = '';
+        let selectedFile = null; // 存选中的图片文件
 
-        // 文件选择事件
+        // 选择图片后预览
         fileInput.addEventListener('change', e => {
             if (e.target.files && e.target.files[0]) {
+                selectedFile = e.target.files[0]; // 保存图片文件
                 const reader = new FileReader();
                 reader.onload = e => {
                     preview.src = e.target.result;
                     preview.style.display = 'block';
                     identifyBtn.style.display = 'inline-block';
-                    imageBase64 = e.target.result.split(',')[1];
                 };
-                reader.readAsDataURL(e.target.files[0]);
+                reader.readAsDataURL(selectedFile);
             }
         });
 
-        // 识别按钮事件
+        // 点击“开始识别”时发送图片
         identifyBtn.addEventListener('click', async () => {
             resultDiv.style.display = 'block';
             resultDiv.innerHTML = '<div class="loading"></div>正在识别中...';
-            
+
             try {
-                // 模拟API请求延迟
-                setTimeout(async () => {
-                    const res = await fetch('http://10.15.118.176:3000/checkImage', {
-                        method: 'POST',
-                        headers: { 
-                            'Content-Type': 'application/json' 
-                        },
-                        body: JSON.stringify({ imageBase64 })
-                    });
-                    
-                    const data = await res.json();
-                    
-                    // 美化结果展示：如果是百度API格式，提取关键信息
-                    if (data.result && data.result.length > 0) {
-                        const firstMatch = data.result[0];
-                        let resultHTML = `
-                            <h3>识别结果</h3>
-                            <p><strong>名称：</strong>${firstMatch.name || '未知'}</p>
-                            <p><strong>相似度：</strong>${(firstMatch.score * 100).toFixed(2)}%</p>
-                            <p><strong>药用价值：</strong><br>
-                            ${firstMatch.baike_info ? firstMatch.baike_info.description : '无详细信息'}
-                            </p>
-                        `;
-                        resultDiv.innerHTML = resultHTML;
-                    } else {
-                        resultDiv.innerHTML = '未识别到匹配的中草药，请尝试更换图片重试。';
-                    }
-                }, 800);
-                
+                // 用“表单”格式发图片（类似上传附件）
+                const formData = new FormData();
+                formData.append('image', selectedFile); // 关键：后端就认这个“image”字段
+
+                const res = await fetch('http://10.15.118.176:3000/checkImage', {
+                    method: 'POST',
+                    body: formData // 直接发图片文件，不用加JSON头
+                });
+
+                const data = await res.json();
+                // 下面是展示结果的代码（不用改）
+                if (data.result && data.result.length > 0) {
+                    const firstMatch = data.result[0];
+                    let resultHTML = `
+        <h3>识别结果</h3>
+        <p><strong>名称：</strong>${firstMatch.name || '未知'}</p>
+        <p><strong>相似度：</strong>${(firstMatch.score * 100).toFixed(2)}%</p>
+        <p><strong>药用价值：</strong><br>
+        ${firstMatch.baike_info ? firstMatch.baike_info.description : '无详细信息'}
+        </p>
+      `;
+                    resultDiv.innerHTML = resultHTML;
+                } else {
+                    resultDiv.innerHTML = '未识别到匹配的中草药，请换张图片试试。';
+                }
             } catch (error) {
                 resultDiv.innerHTML = '识别失败：' + error.message;
             }
