@@ -252,7 +252,7 @@
                 const formData = new FormData();
                 formData.append('image', selectedFile); // 关键：后端就认这个“image”字段
 
-                const res = await fetch('https://b3eeaab00392.ngrok-free.app/checkImage', {
+                const res = await fetch('https://8af59538cca6.ngrok-free.app/checkImage', {
                     method: 'POST',
                     body: formData // 直接发图片文件，不用加JSON头
                 });
