@@ -250,21 +250,16 @@
             resultDiv.innerHTML = '<div class="loading"></div>正在识别中...';
 
             try {
-                // 检查是否有选择的文件
-                if (!fileInput.files || !fileInput.files[0]) {
-                    throw new Error('请先选择图片文件');
-                }
-
-                // 创建FormData对象，发送文件
-                const formData = new FormData();
-                formData.append('image', fileInput.files[0]);
-
+                // 用JSON格式发送（和后端接口匹配）
                 const res = await fetch('https://8af59538cca6.ngrok-free.app/checkImage', { // 替换为当前ngrok域名
                     method: 'POST',
                     headers: {
+                        'Content-Type': 'application/json', // 关键：指定JSON格式
                         'ngrok-skip-browser-warning': 'true' // 跳过ngrok浏览器警告
                     },
-                    body: formData // 发送FormData而不是JSON
+                    body: JSON.stringify({
+                        imageBase64: imageBase64 // 字段名和后端一致
+                    })
                 });
 
                 if (!res.ok) {
@@ -272,8 +267,6 @@
                 }
 
                 const data = await res.json();
-                console.log('服务器返回数据:', data);
-                
                 // 展示结果（保持不变）
                 if (data.result && data.result.length > 0) {
                     const firstMatch = data.result[0];
