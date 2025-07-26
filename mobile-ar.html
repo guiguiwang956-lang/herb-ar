@@ -220,61 +220,78 @@
         </svg>
     </div>
 
+    <!-- 手机端前端HTML修改后 -->
     <script>
-        // 把原来的代码替换成这个
         const fileInput = document.getElementById('fileInput');
         const preview = document.getElementById('preview');
         const identifyBtn = document.getElementById('identifyBtn');
         const resultDiv = document.getElementById('result');
-        let selectedFile = null; // 存选中的图片文件
+        let imageBase64 = null; // 存图片的Base64数据
 
-        // 选择图片后预览
+        // 选择图片后转Base64（核心修改）
         fileInput.addEventListener('change', e => {
             if (e.target.files && e.target.files[0]) {
-                selectedFile = e.target.files[0]; // 保存图片文件
                 const reader = new FileReader();
                 reader.onload = e => {
+                    // 保存Base64数据（去掉前缀）
+                    imageBase64 = e.target.result.split(',')[1];
                     preview.src = e.target.result;
                     preview.style.display = 'block';
                     identifyBtn.style.display = 'inline-block';
                 };
-                reader.readAsDataURL(selectedFile);
+                // 转成Base64（关键：和电脑端一致）
+                reader.readAsDataURL(e.target.files[0]);
             }
         });
 
-        // 点击“开始识别”时发送图片
+        // 点击识别按钮（核心修改）
         identifyBtn.addEventListener('click', async () => {
             resultDiv.style.display = 'block';
             resultDiv.innerHTML = '<div class="loading"></div>正在识别中...';
 
             try {
-                // 用“表单”格式发图片（类似上传附件）
-                const formData = new FormData();
-                formData.append('image', selectedFile); // 关键：后端就认这个“image”字段
+                // 检查是否有选择的文件
+                if (!fileInput.files || !fileInput.files[0]) {
+                    throw new Error('请先选择图片文件');
+                }
 
-                const res = await fetch('https://8af59538cca6.ngrok-free.app/checkImage', {
+                // 创建FormData对象，发送文件
+                const formData = new FormData();
+                formData.append('image', fileInput.files[0]);
+
+                const res = await fetch('https://8af59538cca6.ngrok-free.app/checkImage', { // 替换为当前ngrok域名
                     method: 'POST',
-                    body: formData // 直接发图片文件，不用加JSON头
+                    headers: {
+                        'ngrok-skip-browser-warning': 'true' // 跳过ngrok浏览器警告
+                    },
+                    body: formData // 发送FormData而不是JSON
                 });
 
+                if (!res.ok) {
+                    throw new Error(`HTTP错误: ${res.status} ${res.statusText}`);
+                }
+
                 const data = await res.json();
-                // 下面是展示结果的代码（不用改）
+                console.log('服务器返回数据:', data);
+                
+                // 展示结果（保持不变）
                 if (data.result && data.result.length > 0) {
                     const firstMatch = data.result[0];
                     let resultHTML = `
-        <h3>识别结果</h3>
-        <p><strong>名称：</strong>${firstMatch.name || '未知'}</p>
-        <p><strong>相似度：</strong>${(firstMatch.score * 100).toFixed(2)}%</p>
-        <p><strong>药用价值：</strong><br>
-        ${firstMatch.baike_info ? firstMatch.baike_info.description : '无详细信息'}
-        </p>
-      `;
+                    <h3>识别结果</h3>
+                    <p><strong>名称：</strong>${firstMatch.name || '未知'}</p>
+                    <p><strong>相似度：</strong>${(firstMatch.score * 100).toFixed(2)}%</p>
+                    <p><strong>药用价值：</strong><br>
+                    ${firstMatch.baike_info ? firstMatch.baike_info.description : '无详细信息'}
+                    </p>
+                `;
                     resultDiv.innerHTML = resultHTML;
                 } else {
                     resultDiv.innerHTML = '未识别到匹配的中草药，请换张图片试试。';
                 }
             } catch (error) {
-                resultDiv.innerHTML = '识别失败：' + error.message;
+                console.error('识别错误详情:', error);
+                resultDiv.innerHTML = '识别失败：' + error.message + '<br><small>请检查网络连接或联系管理员</small>';
             }
         });
     </script>
